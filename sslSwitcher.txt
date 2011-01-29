@@ -3,8 +3,8 @@
 //  SSL Switcher for MODx
 //
 //  Author  : soushi
-//  Version : 1.01
-//  Date    : 2007/12/12
+//  Version : 1.02
+//  Date    : 2008/3/9
 //
 //------------------------------------------------------------------------
 
@@ -14,7 +14,12 @@ switch ($modx->Event->name){
    $tv = $modx->getTemplateVarOutput('sslSwitcher',$id);
    if( !(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') 
      && strpos($tv['sslSwitcher'],'SwitchHTTP to HTTPS') !== False ){
-     $url = $modx->makeUrl($id,'','','full');
+     $arg= '';
+     foreach($_GET as $key => $val){
+       if( $key == 'q' ) continue;
+       $arg .= '&'.urlencode($key).'='.urlencode($val);
+     }
+     $url = $modx->makeUrl($id,'',$arg,'full');
      $url = preg_replace('/^http:\/\//','https://',$url);       
      $modx->sendRedirect($url, 0, 'REDIRECT_HEADER', '301');
    }
@@ -24,6 +29,7 @@ switch ($modx->Event->name){
    if(! preg_match_all('/\[~s([0-9]+)~\]/',$modx->documentOutput,$ids)){
      return;
    }
+
    $ids[1][] = $modx->documentIdentifier;
    
    foreach( $ids[1] as $key => $val){
