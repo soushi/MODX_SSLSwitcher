@@ -1,0 +1,53 @@
+//------------------------------------------------------------------------
+//
+//  SSL Switcher for MODx
+//
+//  Author  : soushi
+//  Version : 1.00
+//  Date    : 2007/12/10
+//
+//------------------------------------------------------------------------
+
+if(! preg_match_all('/\[~s([0-9]+)~\]/',$modx->documentOutput,$ids)){
+  return;
+}
+$ids[1][] = $modx->documentIdentifier;
+
+foreach( $ids[1] as $key => $val){
+  if( isset($ssldoc[$val]) ){continue;}
+  $tv1 = $modx->getTemplateVarOutput('sslSwitcher',$val,0);
+  $tv2 = $modx->getTemplateVarOutput('sslSwitcher',$val,1);
+  if( strpos($tv1['sslSwitcher'].$tv2['sslSwitcher'],'UseHTTPS') !== False ){
+    $ssldoc[$val] = true;
+  }else{
+    $ssldoc[$val] = false;
+  }
+}
+
+//if( $ssldoc[$modx->documentIdentifier] == true){
+if( isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off'){
+  $sslon = true;
+}else{
+  $sslon = false;
+}
+
+$ptn=array();
+$rpl=array();
+foreach( $ssldoc as $key => $val){
+  if( $sslon == $val ){
+    $url = $modx->makeUrl($key);
+  }else{
+    $url = $modx->makeUrl($key,'','','full');
+    if( $sslon == true ){
+      $url = preg_replace('/^https:\/\//','http://',$url);
+    }else{
+      $url = preg_replace('/^http:\/\//','https://',$url);
+    }
+  }
+  $ptn[] = '[~s'.$key.'~]';
+  $rpl[] = $url;
+}
+
+$modx->documentOutput = str_replace($ptn,$rpl,$modx->documentOutput);
+
+
