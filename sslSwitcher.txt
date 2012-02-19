@@ -1,76 +1,100 @@
 //------------------------------------------------------------------------
 //
-//  SSL Switcher for MODx
+//  SSL Switcher for MODX
 //
 //  Author  : soushi
-//  Version : 1.02
-//  Date    : 2008/3/9
+//  Version : 2.00
+//  Date    : 2012/2/19
 //
 //------------------------------------------------------------------------
 
+// http/https状態の確認
+$onSSL = $modx->Event->getGlobalVariable('conf_sslsw_https');
+if( $onSSL === false ){
+  $onSSL='off';
+  $sslKeys=array('HTTPS','X-HTTPS','HTTP_X_HTTPS');
+  foreach( $sslKeys as $key ){
+    if( isset($_SERVER[$key]) && $_SERVER[$key] != 'off' ){
+      $onSSL='on';
+    }
+  }
+  if( isset($httpsKey) && !empty($httpsKey)
+      && isset($httpsVal) && !empty($httpsVal)){
+    if( isset($_SERVER[$httpsKey]) && $_SERVER[$httpsKey] == $httpsVal ){
+      $onSSL='on';
+    }
+  }
+  $modx->Event->setGlobalVariable('conf_sslsw_https',$onSSL);
+}
+//$modx->logEvent(1, 1, 'on SSL:'.$onSSL, '[SSL SW Debug]'.$modx->Event->name);
+
 switch ($modx->Event->name){
- case "OnWebPageInit":
+ case 'OnWebPageInit':
    $id = $modx->documentIdentifier;
-   $tv = $modx->getTemplateVarOutput('sslSwitcher',$id);
-   if( !(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') 
-     && strpos($tv['sslSwitcher'],'SwitchHTTP to HTTPS') !== False ){
-     $arg= '';
-     foreach($_GET as $key => $val){
-       if( $key == 'q' ) continue;
-       $arg .= '&'.urlencode($key).'='.urlencode($val);
+   $tv = $modx->getTemplateVarOutput('SSLSwitcher',$id);
+   if( strpos($tv['SSLSwitcher'],'自動リダイレクト禁止') === false ){
+     $redirect=false;
+     if( $onSSL == 'off' && strpos($tv['SSLSwitcher'],'HTTPS利用') !== false ){
+       $redirect='s';
      }
-     $url = $modx->makeUrl($id,'',$arg,'full');
-     $url = preg_replace('/^http:\/\//','https://',$url);       
-     $modx->sendRedirect($url, 0, 'REDIRECT_HEADER', '301');
+     if( $onSSL == 'on' && strpos($tv['SSLSwitcher'],'HTTPS利用') === false ){
+       $redirect='p';
+     }
+     if( $redirect != false ){
+       $arg= '';
+       foreach($_GET as $key => $val){
+	 if( $key == 'q' || $key == 'id' ) continue;
+	 $arg .= '&'.urlencode($key).'='.urlencode($val);
+       }
+       $url = $modx->makeUrl($id,'',$arg,'full');
+       if( $redirect == 's' ){
+	 $url = preg_replace('/^http:\/\//','https://',$url);
+       }else{
+	 $url = preg_replace('/^https:\/\//','http://',$url);
+       }
+       header('HTTP/1.0 301 Moved Permanently');
+       header('Location:'.$url);
+       exit();
+       //仕様が変わりそうなのでとりあえず利用しない
+       //$modx->sendRedirect($url, 0, 'REDIRECT_HEADER', '301');
+     }
    }
    break;
 
- case "OnWebPagePrerender":
-   if(! preg_match_all('/\[~s([0-9]+)~\]/',$modx->documentOutput,$ids)){
-     return;
-   }
-
-   $ids[1][] = $modx->documentIdentifier;
-   
-   foreach( $ids[1] as $key => $val){
-     if( isset($ssldoc[$val]) ){continue;}
-     $tv1 = $modx->getTemplateVarOutput('sslSwitcher',$val,0);
-     $tv2 = $modx->getTemplateVarOutput('sslSwitcher',$val,1);
-     if( strpos($tv1['sslSwitcher'].$tv2['sslSwitcher'],'UseHTTPS') !== False ){
-       $ssldoc[$val] = true;
+ case 'OnWebPagePrerender':
+   //<base>タグ書き換え
+   if( $rewriteBaseTag == 'true' ){
+     if( $onSSL == 'on' ){
+       $modx->documentOutput = preg_replace('/(<base +href=[\'"]http):/i','${1}s:',$modx->documentOutput);
      }else{
-       $ssldoc[$val] = false;
+       $modx->documentOutput = preg_replace('/(<base +href=[\'"]http)s:/i','${1}:',$modx->documentOutput);
      }
    }
+   break;
 
-   //if( $ssldoc[$modx->documentIdentifier] == true){
-   if( isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off'){
-     $sslon = true;
+ case 'OnMakeUrl':
+   //URL書き換え
+   if( $makeURLwithSSL != 'true' ){break;}
+   $tv = $modx->getTemplateVarOutput('SSLSwitcher',$id); //$idはmakeUrlで指定したid
+   $tv1 = $modx->getTemplateVarOutput('sslSwitcher',$id,0);
+   $tv2 = $modx->getTemplateVarOutput('sslSwitcher',$id,1);
+   if( strpos($tv1['sslSwitcher'].$tv2['SSLSwitcher'],'HTTPS利用') !== false ){
+     $toSSL='on';
    }else{
-     $sslon = false;
+     $toSSL='off';
+   }
+   if( $onSSL != $toSSL ){ // https -> http
+     if( $scheme != 'full' ){
+       $url = $modx->config['site_url'].preg_replace('/^\//','',$url);
+     }
+     if( $onSSL='on' ){ // https -> http
+       $url = preg_replace('/^https:\/\//','http://',$url);
+     }else{ // http -> https
+       $url = preg_replace('/^http:\/\//','https://',$url);
+     }
+     $modx->event->output($url);
    }
 
-   $ptn=array();
-   $rpl=array();
-   foreach( $ssldoc as $key => $val){
-     if( isset( $modx->aliasListing[$key]) ){
-       if( $sslon == $val ){
-	 $url = $modx->makeUrl($key);
-       }else{
-	 $url = $modx->makeUrl($key,'','','full');
-	 if( $sslon == true ){
-	   $url = preg_replace('/^https:\/\//','http://',$url);
-	 }else{
-	   $url = preg_replace('/^http:\/\//','https://',$url);
-	 }
-       }
-       $ptn[] = '[~s'.$key.'~]';
-       $rpl[] = $url;
-     }
-   }
-   
-   $modx->documentOutput = str_replace($ptn,$rpl,$modx->documentOutput);
    break;
    
 }
-
