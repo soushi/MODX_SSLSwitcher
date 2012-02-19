@@ -3,6 +3,10 @@ SSL Switcher - changelog.txt
 --------------------------------------------
 
 [更新履歴]
+ 2012/02/xx - 2.02
+  ・HTTP/HTTPS側URLの指定する設定を追加
+    (http/httpsでURLが変わる場合に利用)
+
  2012/02/19 - 2.01
   ・httpからhttpsのURLに書き換わらない問題の修正
 

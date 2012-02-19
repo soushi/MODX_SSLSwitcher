@@ -3,8 +3,8 @@
 //  SSL Switcher for MODX
 //
 //  Author  : soushi
-//  Version : 2.01
-//  Date    : 2012/2/19
+//  Version : 2.02
+//  Date    : 2012/2/xx
 //
 //------------------------------------------------------------------------
 
@@ -18,8 +18,8 @@ if( $onSSL === false ){
       $onSSL='on';
     }
   }
-  if( isset($httpsKey) && !empty($httpsKey)
-      && isset($httpsVal) && !empty($httpsVal)){
+  if( isset($httpsKey) && !empty($httpsKey) &&
+      isset($httpsVal) && !empty($httpsVal)){
     if( isset($_SERVER[$httpsKey]) && $_SERVER[$httpsKey] == $httpsVal ){
       $onSSL='on';
     }
@@ -28,8 +28,21 @@ if( $onSSL === false ){
 }
 //$modx->logEvent(1, 1, 'on SSL:'.$onSSL, '[SSL SW Debug]'.$modx->Event->name);
 
+// url_http/url_httpsは両方設定されてる必要がある
+if( isset($url_http) || isset($url_https) ){
+  $customURL=false;
+  if( isset($url_http) && !empty($url_http) &&
+      isset($url_https) && !empty($url_https) ){
+    $customURL=true;
+  }
+}
+
 switch ($modx->Event->name){
  case 'OnWebPageInit':
+   if( isset($customURL) && $customURL == false ){
+     $modx->logEvent(1, 1, 'プラグイン設定でHTTP側URL/HTTPS側URLを設定するときは両方とも設定してください。両方設定しないと有効になりません。', '[SSS Swicher:Error]カスタムURLエラー');
+   }
+
    $id = $modx->documentIdentifier;
    $tv = $modx->getTemplateVarOutput('SSLSwitcher',$id);
    if( strpos($tv['SSLSwitcher'],'自動リダイレクト禁止') === false ){
@@ -48,9 +61,16 @@ switch ($modx->Event->name){
        }
        $url = $modx->makeUrl($id,'',$arg,'full');
        if( $redirect == 's' ){
-	 $url = preg_replace('/^http:\/\//','https://',$url);
+         $url = preg_replace('/^http:\/\//','https://',$url);
        }else{
-	 $url = preg_replace('/^https:\/\//','http://',$url);
+         $url = preg_replace('/^https:\/\//','http://',$url);
+       }
+       if( isset($customURL) && $customURL == true ){
+         if( $redirect == 's' ){
+           $url = str_replace($url_http,$url_https,$url);
+         }else{
+           $url = str_replace($url_https,$url_http,$url);
+         }
        }
        header('HTTP/1.0 301 Moved Permanently');
        header('Location:'.$url);
@@ -64,10 +84,18 @@ switch ($modx->Event->name){
  case 'OnWebPagePrerender':
    //<base>タグ書き換え
    if( $rewriteBaseTag == 'true' ){
-     if( $onSSL == 'on' ){
-       $modx->documentOutput = preg_replace('/(<base +href=[\'"]http):/i','${1}s:',$modx->documentOutput);
+     if( isset($customURL) && $customURL == true ){
+       if( $onSSL == 'on' ){
+         $modx->documentOutput = preg_replace("|(<base +href=['\"]http):\/\/{$url_http}|i",'${1}s://'.$url_https,$modx->documentOutput);
+       }else{
+         $modx->documentOutput = preg_replace("|(<base +href=['\"]http)s:\/\/{$url_https}|i",'${1}://'.$url_http,$modx->documentOutput);
+       }
      }else{
-       $modx->documentOutput = preg_replace('/(<base +href=[\'"]http)s:/i','${1}:',$modx->documentOutput);
+       if( $onSSL == 'on' ){
+         $modx->documentOutput = preg_replace('/(<base +href=[\'"]http):/i','${1}s:',$modx->documentOutput);
+       }else{
+         $modx->documentOutput = preg_replace('/(<base +href=[\'"]http)s:/i','${1}:',$modx->documentOutput);
+       }
      }
    }
    break;
@@ -92,6 +120,14 @@ switch ($modx->Event->name){
      }else{ // http -> https
        $url = preg_replace('/^http:\/\//','https://',$url);
      }
+     if( isset($customURL) && $customURL == true ){
+       if( $onSSL=='on' ){ // https -> http
+         $url = str_replace($url_https,$url_http,$url);
+       }else{
+         $url = str_replace($url_http,$url_https,$url);
+       }
+     }
+
      $modx->event->output($url);
    }
 
