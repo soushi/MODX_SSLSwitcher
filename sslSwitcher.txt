@@ -87,7 +87,7 @@ switch ($modx->Event->name){
      if( $scheme != 'full' ){
        $url = $modx->config['site_url'].preg_replace('/^\//','',$url);
      }
-     if( $onSSL='on' ){ // https -> http
+     if( $onSSL=='on' ){ // https -> http
        $url = preg_replace('/^https:\/\//','http://',$url);
      }else{ // http -> https
        $url = preg_replace('/^http:\/\//','https://',$url);
