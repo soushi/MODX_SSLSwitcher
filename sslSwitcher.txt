@@ -1,12 +1,17 @@
-//------------------------------------------------------------------------
-//
-//  SSL Switcher for MODX
-//
-//  Author  : soushi
-//  Version : 2.01
-//  Date    : 2012/2/19
-//
-//------------------------------------------------------------------------
+//<?php
+/**
+ * SSL Switcher for MODX
+ *
+ * MODXのリソースごとにhttpとhttpsの設定を行い、自動でURLの変換をしたり、自動リダイレクトしてくれるプラグイン
+ *
+ * @category plugin
+ * @version  2.01
+ * @license  http://www.gnu.org/copyleft/gpl.html GNU Public License (GPL)
+ * @author   soushi 2012/2/19
+ * @internal @properties &makeURLwithSSL=URL自動変換;list;true,false;true &rewriteBaseTag=baseタグ自動書き換え;list;true,false;true
+ * @internal @events OnWebPageInit,OnWebPagePrerender,OnMakeUrl
+ * @internal @modx_category Content
+ */
 
 // http/https状態の確認
 $onSSL = $modx->Event->getGlobalVariable('conf_sslsw_https');
