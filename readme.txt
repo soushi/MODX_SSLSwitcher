@@ -149,7 +149,7 @@ MODXのリソース毎にhttpとhttpsの設定を行い、自動でURLの変換�
   2)http->https(or https->http)へリダイレクトする際、QUERY_STRINGも合わせて
     リダイレクトします(POSTデータは削除されます)。
 
-  3)https接続の判定は以下の環境変数を参考にしています。
+  3)https接続の判定は以下の環境変数を参考にしています
 
       ・HTTPS
       ・X-HTTPS
@@ -165,3 +165,15 @@ MODXのリソース毎にhttpとhttpsの設定を行い、自動でURLの変換�
     ます。
     追加するユーザが多い環境変数についてはSSL Switcher側で取り込んでもいいかな
     と思ってます。
+
+  4)http/httpsでURLが違う場合
+    現在調整中。
+    プラグイン設定に次の設定を追加してhttp/httpsのドメインを入力させる。
+
+      &url_http=HTTP側URL;string;&url_https=HTTPS側URL;string;
+
+       例-1)HTTP側URL : www.example.com/
+            HTTPS側URL: ssl.example.com/
+       例-2)HTTP側URL : www.example.com/
+            HTTPS側URL: ssl.example.com/ssl_dir/
+
