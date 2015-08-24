@@ -78,6 +78,9 @@ switch ($modx->Event->name){
    $tv = $modx->getTemplateVarOutput('SSLSwitcher',$id); //$idはmakeUrlで指定したid
    $tv1 = $modx->getTemplateVarOutput('sslSwitcher',$id,0);
    $tv2 = $modx->getTemplateVarOutput('sslSwitcher',$id,1);
+   if( strpos($tv1['sslSwitcher'].$tv2['SSLSwitcher'],'URL書き換え禁止') !== false ){
+     break;
+   }
    if( strpos($tv1['sslSwitcher'].$tv2['SSLSwitcher'],'HTTPS利用') !== false ){
      $toSSL='on';
    }else{
