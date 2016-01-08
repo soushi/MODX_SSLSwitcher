@@ -76,7 +76,11 @@ switch ($modx->event->name){
            $url = str_replace($url_https,$url_http,$url);
          }
        }
-       header('HTTP/1.0 301 Moved Permanently');
+       if( $_SERVER['REQUEST_METHOD'] == 'POST' ){
+         header('HTTP/1.0 307 Temporary Redirect');
+       }else{
+         header('HTTP/1.0 301 Moved Permanently');
+       }
        header('Location:'.$url);
        exit();
        //仕様が変わりそうなのでとりあえず利用しない
