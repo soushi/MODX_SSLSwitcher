@@ -1,4 +1,3 @@
-//<?php
 /**
  * SSL Switcher for MODX
  *
@@ -14,7 +13,7 @@
  */
 
 // http/https状態の確認
-$onSSL = $modx->Event->getGlobalVariable('conf_sslsw_https');
+$onSSL = $modx->event->getGlobalVariable('conf_sslsw_https');
 if( $onSSL === false ){
   $onSSL='off';
   $sslKeys=array('HTTPS','X-HTTPS','HTTP_X_HTTPS');
@@ -29,9 +28,9 @@ if( $onSSL === false ){
       $onSSL='on';
     }
   }
-  $modx->Event->setGlobalVariable('conf_sslsw_https',$onSSL);
+  $modx->event->setGlobalVariable('conf_sslsw_https',$onSSL);
 }
-//$modx->logEvent(1, 1, 'on SSL:'.$onSSL, '[SSL SW Debug]'.$modx->Event->name);
+//$modx->logEvent(1, 1, 'on SSL:'.$onSSL, '[SSL SW Debug]'.$modx->event->name);
 
 // url_http/url_httpsは両方設定されてる必要がある
 if( isset($url_http) || isset($url_https) ){
@@ -42,7 +41,7 @@ if( isset($url_http) || isset($url_https) ){
   }
 }
 
-switch ($modx->Event->name){
+switch ($modx->event->name){
  case 'OnWebPageInit':
    if( isset($customURL) && $customURL == false ){
      $modx->logEvent(1, 1, 'プラグイン設定でHTTP側URL/HTTPS側URLを設定するときは両方とも設定してください。両方設定しないと有効になりません。', '[SSS Swicher:Error]カスタムURLエラー');
