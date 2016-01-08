@@ -1,6 +1,6 @@
 <?php
 // Control SSLSwitcher
-if( isset($src) ){
+if( isset($output) ){
   $onSSL=false;
   $sslKeys=array('HTTPS','X-HTTPS','HTTP_X_HTTPS');
   foreach( $sslKeys as $key ){
@@ -9,7 +9,7 @@ if( isset($src) ){
     }
   }
 
-  $srcSSL=preg_match('/<base +href="https:/i',$src);
+  $srcSSL=preg_match('/<base +href="https:/i',$output);
   if( $onSSL && !$srcSSL ){
     // https -> http
     header('HTTP/1.0 301 Moved Permanently');
