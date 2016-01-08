@@ -3,9 +3,12 @@ SSL Switcher - changelog.txt
 --------------------------------------------
 
 [更新履歴]
- 2012/02/xx - 2.02
+ 2016/01/09 - 2.02
   ・HTTP/HTTPS側URLの指定する設定を追加
     (http/httpsでURLが変わる場合に利用)
+  ・バイパスモード用にautoload.phpを用意
+  ・POSTの時はHTTP307を利用する
+  ・URL書き換え禁止を追加
 
  2012/02/19 - 2.01
   ・httpからhttpsのURLに書き換わらない問題の修正
