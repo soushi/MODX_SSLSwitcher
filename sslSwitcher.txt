@@ -135,7 +135,7 @@ switch ($modx->event->name){
        }
      }
 
-     $modx->event->output($url);
+     $modx->event->cm->addOutput($url);
    }
 
    break;
